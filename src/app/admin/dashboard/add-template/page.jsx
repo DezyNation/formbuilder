@@ -166,6 +166,7 @@ const page = () => {
           <br />
           <br />
           <HStack justifyContent={"flex-end"}>
+            <Button fontWeight={'medium'}>Preview</Button>
             <CustomButton>Save</CustomButton>
           </HStack>
         </Box>

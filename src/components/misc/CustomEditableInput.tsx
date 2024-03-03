@@ -25,8 +25,7 @@ const CustomEditableInput: FC<CustomEditableInputProps> = ({
   return (
     <>
       <Editable
-        value={value}
-        onChange={onChange}
+        defaultValue={value}
         w={width || "auto"}
         onSubmit={(value) => onSubmit(value)}
         fontSize={fontSize || "md"}

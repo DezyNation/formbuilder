@@ -86,7 +86,12 @@ const page = () => {
                     />
                   </Tooltip>
                   <Tooltip label={"View Responses"} hasArrow>
-                    <IconButton colorScheme="twitter" icon={<BsEyeFill />} />
+                    <IconButton
+                      colorScheme="twitter"
+                      icon={<BsEyeFill />}
+                      as={"a"}
+                      href="/admin/dashboard/responses/form-2kjn23"
+                    />
                   </Tooltip>
                   <Tooltip label={"Delete Form"} hasArrow>
                     <IconButton colorScheme="red" icon={<FaTrash />} />
