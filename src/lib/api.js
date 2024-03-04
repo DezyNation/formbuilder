@@ -65,7 +65,11 @@ export const API = {
       window.location.replace("/auth/login");
     }
 
-    return Promise.all([res.status, res.json(), res.ok]);
+    return Promise.all([
+      res.status,
+      res.status != 204 ? res.json() : {},
+      res.ok,
+    ]);
   },
 
   /**
@@ -74,14 +78,15 @@ export const API = {
    * @returns
    */
   processResponse: (res) => {
-    if (!res[2]) {
+    if (!res[2] && res[0] !== 204) {
       console.error({ error: res });
-      // throw new Error(res[1]?.error);
       const error = new Error(
         res[1]?.message || `Err while processing request`
       );
       error.status = res[0];
       throw error;
+    } else if (res[0] === 204) {
+      return { status: res[0] };
     }
     return res[1];
   },
@@ -118,101 +123,52 @@ export const API = {
     return API.processResponse(res);
   },
 
-  getServices: async () => {
-    let res = await API.execute(`/services`, "GET");
+
+  //  Dashboard APIs
+
+  createForm: async (data) => {
+    let res = await API.execute(`/admin/forms`, "POST", data);
     return API.processResponse(res);
   },
 
-  getPortalBanks: async () => {
-    let res = await API.execute(`/banks`, "GET");
+  getForms: async () => {
+    let res = await API.execute(`/admin/forms`, "GET");
     return API.processResponse(res);
   },
 
-  // Member APIs
-
-  overview: async (duration) => {
-    let res = await API.execute(`/overview/${duration}`, "GET");
+  adminGetFormInfo: async (id) => {
+    let res = await API.execute(`/admin/forms/${id}`, "GET");
     return API.processResponse(res);
   },
 
-  wallet: async () => {
-    console.log("token", Cookies.get("token"));
-    let res = await API.execute(`/user/wallet`, "GET");
+  updateForm: async (id, data) => {
+    let res = await API.execute(`/admin/forms/${id}`, "PUT", data);
     return API.processResponse(res);
   },
 
-  updateMe: async (data) => {
-    let res = await API.execute("/users/update/me", "PUT", data);
+  deleteForm: async (id) => {
+    let res = await API.execute(`/admin/forms/${id}`, "DELETE");
     return API.processResponse(res);
   },
 
-  fundRequests: async () => {
-    let res = await API.execute(`/user/fund-requests`, "GET");
+  createTemplate: async (data) => {
+    let res = await API.execute(`/template`, "POST", data);
     return API.processResponse(res);
   },
 
-  newFundRequest: async (data) => {
-    let res = await API.execute(`/user/fund-requests`, "POST", data);
+  getTemplates: async () => {
+    let res = await API.execute(`/templates`, "GET");
     return API.processResponse(res);
   },
 
-  // Admin APIs
-
-  adminPendingFundRequests: async (query, url) => {
-    let res = await API.execute(
-      url || `/admin/fund-requests?status=${"pending"}${
-        query
-          ? `&` +
-            Object.keys(query)
-              .map(
-                (key) =>
-                  encodeURIComponent(key) + "=" + encodeURIComponent(query[key])
-              )
-              .join("&")
-          : ""
-      }`,
-      "GET"
-    );
+  updateTemplate: async (id, data) => {
+    let res = await API.execute(`/template/${id}`, "PUT", data);
     return API.processResponse(res);
   },
 
-  adminApproveFundRequest: async (id) => {
-    let res = await API.execute(`/admin/fund-requests/${id}`, "PUT", {
-      status: "approved",
-    });
+  deleteTemplate: async (id) => {
+    let res = await API.execute(`/template/${id}`, "DELETE");
     return API.processResponse(res);
   },
 
-  adminRejectFundRequest: async (id, adminRemarks) => {
-    let res = await API.execute(`/admin/fund-requests/${id}`, "PUT", {
-      status: "rejected",
-      admin_remarks: adminRemarks,
-    });
-    return API.processResponse(res);
-  },
-
-  adminUpdateService: async (id, data) => {
-    let res = await API.execute(`/admin/controls/services/${id}`, "PUT", data);
-    return API.processResponse(res);
-  },
-
-  adminGetPortalBanks: async () => {
-    let res = await API.execute(`/admin/controls/bank`, "GET");
-    return API.processResponse(res);
-  },
-
-  adminAddPortalBank: async (data) => {
-    let res = await API.execute(`/admin/controls/bank`, "POST", data);
-    return API.processResponse(res);
-  },
-
-  adminUpdatePortalBank: async (id, data) => {
-    let res = await API.execute(`/admin/controls/bank/${id}`, "PUT", data);
-    return API.processResponse(res);
-  },
-
-  adminDeletePortalBank: async (id) => {
-    let res = await API.execute(`/admin/controls/bank/${id}`, "DELETE");
-    return API.processResponse(res);
-  },
 };

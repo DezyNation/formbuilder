@@ -22,13 +22,22 @@ const page = () => {
   const [file, setFile] = useState(null);
   const [imgLocalUrl, setImgLocalUrl] = useState("");
   const [qrVariant, setQrVariant] = useState("black");
+
+  const [nameFontSize, setNameFontSize] = useState("20");
   const [nameCord, setNameCord] = useState({
     x: 0,
     y: 0,
   });
+
+  const [eventFontSize, setEventFontSize] = useState("20");
+  const [eventCord, setEventCord] = useState({
+    x: 0,
+    y: 0,
+  });
+
   const [qrCord, setQrCord] = useState({
     x: 93,
-    y: 89,
+    y: 95,
   });
 
   useEffect(() => {
@@ -106,6 +115,87 @@ const page = () => {
             </HStack>
           </HStack>
           <br />
+          <HStack alignItems={"flex-end"} justifyContent={"space-between"}>
+            <FormLabel>Name Font Size (in px)</FormLabel>
+            <HStack>
+              <Box w={60}>
+                <NumberInput
+                  value={nameFontSize}
+                  onChange={(value) => setNameFontSize(value)}
+                >
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </Box>
+            </HStack>
+          </HStack>
+          <br />
+          <br />
+          <HStack alignItems={"flex-end"} justifyContent={"space-between"}>
+            <FormLabel>Event Name Co-ordinates (in %)</FormLabel>
+            <HStack gap={6}>
+              <HStack>
+                <Box w={28}>
+                  <FormLabel>X axis</FormLabel>
+                  <NumberInput
+                    min={0}
+                    max={100}
+                    value={eventCord.x}
+                    onChange={(value) =>
+                      setEventCord((prev) => ({ ...prev, x: value }))
+                    }
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </Box>
+              </HStack>
+              <HStack>
+                <Box w={28}>
+                  <FormLabel>Y axis</FormLabel>
+                  <NumberInput
+                    min={0}
+                    max={100}
+                    value={eventCord.y}
+                    onChange={(value) =>
+                      setEventCord((prev) => ({ ...prev, y: value }))
+                    }
+                  >
+                    <NumberInputField />
+                    <NumberInputStepper>
+                      <NumberIncrementStepper />
+                      <NumberDecrementStepper />
+                    </NumberInputStepper>
+                  </NumberInput>
+                </Box>
+              </HStack>
+            </HStack>
+          </HStack>
+          <br />
+          <HStack alignItems={"flex-end"} justifyContent={"space-between"}>
+            <FormLabel>Event Name Font Size (in px)</FormLabel>
+            <HStack>
+              <Box w={60}>
+                <NumberInput
+                  value={nameFontSize}
+                  onChange={(value) => setEventFontSize(value)}
+                >
+                  <NumberInputField />
+                  <NumberInputStepper>
+                    <NumberIncrementStepper />
+                    <NumberDecrementStepper />
+                  </NumberInputStepper>
+                </NumberInput>
+              </Box>
+            </HStack>
+          </HStack>
+          <br />
           <br />
           <HStack alignItems={"flex-end"} justifyContent={"space-between"}>
             <FormLabel>Certificate QR Co-ordinates (in %)</FormLabel>
@@ -134,7 +224,7 @@ const page = () => {
                   <FormLabel>Y axis</FormLabel>
                   <NumberInput
                     min={0}
-                    max={89}
+                    max={95}
                     value={qrCord.y}
                     onChange={(value) =>
                       setQrCord((prev) => ({ ...prev, y: value }))
@@ -160,26 +250,44 @@ const page = () => {
                 { id: "black", label: "black" },
               ]}
               onChange={(value) => setQrVariant(value)}
-              boxShadow={'none'}
+              boxShadow={"none"}
             />
           </HStack>
           <br />
           <br />
           <HStack justifyContent={"flex-end"}>
-            <Button fontWeight={'medium'}>Preview</Button>
+            <Button fontWeight={"medium"}>Preview</Button>
             <CustomButton>Save</CustomButton>
           </HStack>
         </Box>
         {imgLocalUrl ? (
-          <Box w={["full", "50%"]} height={'md'} pos={"relative"} bgImage={imgLocalUrl} bgSize={'contain'} bgRepeat={'no-repeat'} >
+          <Box
+            w={["full", "50%"]}
+            pos={"relative"}
+            h={'max-content'}
+            bgImage={imgLocalUrl}
+            bgSize={"contain"}
+            bgRepeat={"no-repeat"}
+            bgColor={'#FFF'}
+          >
+            <Image src={imgLocalUrl} />
             <Text
-              fontSize={"2xl"}
+              fontSize={`${nameFontSize}px`}
               fontWeight={"medium"}
               pos={"absolute"}
               top={`${nameCord.y}%`}
               left={`${nameCord.x}%`}
             >
               John Doe
+            </Text>
+            <Text
+              fontSize={`${eventFontSize}px`}
+              fontWeight={"medium"}
+              pos={"absolute"}
+              top={`${eventCord.y}%`}
+              left={`${eventCord.x}%`}
+            >
+              Event Name
             </Text>
             <Image
               width={12}

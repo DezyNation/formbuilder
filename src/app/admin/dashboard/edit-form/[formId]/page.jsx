@@ -1,5 +1,8 @@
 "use client";
 import CustomEditableInput from "@/components/misc/CustomEditableInput";
+import CustomModal from "@/components/misc/CustomModal";
+import { API } from "@/lib/api";
+import useErrorHandler from "@/lib/hooks/useErrorHandler";
 import {
   Box,
   Button,
@@ -23,19 +26,16 @@ import {
   MenuItem,
   MenuList,
   Select,
+  Spacer,
   Text,
   Textarea,
   VStack,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  BsInputCursor,
-  BsMenuAppFill,
-  BsTextarea,
-  BsTextareaResize,
-} from "react-icons/bs";
-import { FaPlus, FaTrash, FaTrashAlt, FaUserAlt } from "react-icons/fa";
+import { BsInputCursor, BsMenuAppFill, BsTextareaResize } from "react-icons/bs";
+import { FaIdCard, FaPlus, FaTrashAlt, FaUserAlt } from "react-icons/fa";
 import { FaGear } from "react-icons/fa6";
 import { IoMdCheckbox, IoMdRadioButtonOn } from "react-icons/io";
 import { v4 as uuidv4 } from "uuid";
@@ -47,18 +47,25 @@ const nameBlock = {
   placeholder: "Enter your name",
 };
 
+const studentIdBlock = {
+  type: "student_id",
+  name: "student_id",
+  label: "Your Student ID",
+  placeholder: "Enter your student ID",
+};
+
 const inputBlock = {
   type: "input",
   name: uuidv4(),
-  label: "Field Name",
-  placeholder: "Placeholder text...",
+  label: "Input Field",
+  placeholder: "Type here...",
 };
 
 const textareaBlock = {
   type: "textarea",
   name: uuidv4(),
   label: "Field Name",
-  placeholder: "Placeholder text...",
+  placeholder: "Type here...",
 };
 
 const selectBlock = {
@@ -88,19 +95,25 @@ const checkboxBlock = {
 };
 
 const page = ({ params }) => {
+  const ref = useRef(true);
   const { formId } = params;
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const ref = useRef(true);
+  const { handleError } = useErrorHandler();
+  const Toast = useToast()
+  const reservedKeywords = ["name", "student_id"];
 
+  const [data, setData] = useState(null);
   const [formFields, setFormFields] = useState([]);
   const [targetObject, setTargetObject] = useState(null);
+  const [cancelModal, setCancelModal] = useState(false);
 
   useEffect(() => {
     if (ref.current) {
       ref.current = false;
-      const data = JSON.parse(localStorage.getItem(formId));
-      if (data) {
-        setFormFields(data);
+      fetchFormData();
+      const parsedData = JSON.parse(localStorage.getItem(`form-${formId}`));
+      if (parsedData) {
+        setFormFields(parsedData);
       }
     }
   }, []);
@@ -108,6 +121,9 @@ const page = ({ params }) => {
   function handleFieldAddition(type) {
     if (type == "name") {
       setFormFields((prev) => [...prev, nameBlock]);
+    }
+    if (type == "student_id") {
+      setFormFields((prev) => [...prev, studentIdBlock]);
     }
     if (type == "input") {
       setFormFields((prev) => [...prev, inputBlock]);
@@ -125,10 +141,10 @@ const page = ({ params }) => {
 
   function handleFieldDelete(id) {
     const existingFields = formFields;
-    const index = existingFields?.findIndex((field) => field.id == id);
+    const index = existingFields?.findIndex((field) => field.name == name);
 
     if (index > -1) {
-      existingFields.splice(index, 1);
+      existingFields.splice(index+1, 1);
       setFormFields([...existingFields]);
     } else {
       console.log("No field found with id ", id);
@@ -184,8 +200,52 @@ const page = ({ params }) => {
   }, [targetObject]);
 
   useEffect(() => {
-    localStorage.setItem(formId, JSON.stringify(formFields));
+    localStorage.setItem(`form-${formId}`, JSON.stringify(formFields));
   }, [formFields]);
+
+  async function fetchFormData() {
+    try {
+      const res = await API.adminGetFormInfo(formId);
+      setData(res?.data);
+      if (res?.data?.fields) {
+        setFormFields(JSON.parse(res?.data?.fields) || []);
+      }
+    } catch (error) {
+      handleError({
+        title: "Error while fetching form data",
+        error: error,
+      });
+    }
+  }
+
+  async function saveForm(status) {
+    try {
+      await API.updateForm(formId, {
+        ...data,
+        fields: formFields,
+        status: status,
+      });
+      Toast({
+        status: "success",
+        description:
+          status == "draft"
+            ? `Form saved successfully as draft`
+            : status == "active"
+            ? "Form published successfully!"
+            : null,
+      });
+    } catch (error) {
+      handleError({
+        title: "Error while saving form data",
+        error: error,
+      });
+    }
+  }
+
+  function cancelEditing() {
+    localStorage.removeItem(`form-${formId}`);
+    window.location.href = `/admin/dashboard/forms`;
+  }
 
   return (
     <>
@@ -197,18 +257,24 @@ const page = ({ params }) => {
           bgColor={"#FFF"}
           boxShadow={"base"}
         >
-          <CustomEditableInput
-            fontSize={"3xl"}
-            value="Form Title"
-            onSubmit={console.log}
-          />
-          <CustomEditableInput
-            fontSize={"sm"}
-            value={
-              "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Necessitatibus corporis, nemo libero incidunt nihil eaque ex exercitationem illo dignissimos quis."
-            }
-            onSubmit={console.log}
-          />
+          {data?.title ? (
+            <CustomEditableInput
+              fontSize={"3xl"}
+              value={data?.title}
+              onSubmit={(value) =>
+                setData((prev) => ({ ...prev, title: value }))
+              }
+            />
+          ) : null}
+          {data?.description ? (
+            <CustomEditableInput
+              fontSize={"sm"}
+              value={data?.description}
+              onSubmit={(value) =>
+                setData((prev) => ({ ...prev, description: value }))
+              }
+            />
+          ) : null}
           <br />
           <br />
 
@@ -220,13 +286,19 @@ const page = ({ params }) => {
             mb={8}
           >
             {formFields?.map((field, key) => {
-              if (field?.type == "name") {
+              if (field?.type == "name" || field?.type == "student_id") {
                 return (
                   <FormControl key={key} maxW={["full", "lg"]}>
                     <FormLabel textTransform={"capitalize"}>
                       {field?.label}
                     </FormLabel>
-                    <Input name={"name"} placeholder={field?.placeholder} />
+                    <Text fontSize={"10"} color={"gray.500"} mb={2}>
+                      {field?.name} (Unique Field ID, only visible to you)
+                    </Text>
+                    <Input
+                      name={field?.name}
+                      placeholder={field?.placeholder}
+                    />
                     <HStack justifyContent={"flex-end"} pt={2}>
                       <IconButton
                         size={"sm"}
@@ -244,6 +316,9 @@ const page = ({ params }) => {
                     <FormLabel textTransform={"capitalize"}>
                       {field?.label}
                     </FormLabel>
+                    <Text fontSize={"10"} color={"gray.500"} mb={2}>
+                      {field?.name} (Unique Field ID, only visible to you)
+                    </Text>
                     <Input
                       name={field?.name}
                       placeholder={field?.placeholder}
@@ -273,6 +348,9 @@ const page = ({ params }) => {
                     <FormLabel textTransform={"capitalize"}>
                       {field?.label}
                     </FormLabel>
+                    <Text fontSize={"10"} color={"gray.500"} mb={2}>
+                      {field?.name} (Unique Field ID, only visible to you)
+                    </Text>
                     <Textarea
                       name={field?.name}
                       placeholder={field?.placeholder}
@@ -304,6 +382,9 @@ const page = ({ params }) => {
                     <FormLabel textTransform={"capitalize"}>
                       {field?.label}
                     </FormLabel>
+                    <Text fontSize={"10"} color={"gray.500"} mb={2}>
+                      {field?.name} (Unique Field ID, only visible to you)
+                    </Text>
                     <Select name={field?.name} placeholder={field?.placeholder}>
                       {field?.options?.map((item, i) => (
                         <option value={item?.value} key={i}>
@@ -336,6 +417,9 @@ const page = ({ params }) => {
                     <FormLabel textTransform={"capitalize"}>
                       {field?.label}
                     </FormLabel>
+                    <Text fontSize={"10"} color={"gray.500"} mb={2}>
+                      {field?.name} (Unique Field ID, only visible to you)
+                    </Text>
                     <CheckboxGroup name={field?.name}>
                       {field?.options?.map((item, i) => (
                         <Checkbox value={item?.value} key={i} mb={4} w={"full"}>
@@ -394,6 +478,16 @@ const page = ({ params }) => {
                 Add Name Field
               </MenuItem>
               <MenuItem
+                icon={<FaIdCard />}
+                onClick={() => handleFieldAddition("student_id")}
+                isDisabled={
+                  formFields?.filter((field) => field?.name == "student_id")
+                    ?.length > 0
+                }
+              >
+                Add Student ID Field
+              </MenuItem>
+              <MenuItem
                 icon={<BsInputCursor />}
                 onClick={() => handleFieldAddition("input")}
               >
@@ -421,6 +515,41 @@ const page = ({ params }) => {
           </Menu>
         </Container>
       </Box>
+      <br />
+      <br />
+      <HStack w={"full"} gap={4}>
+        <Button onClick={() => setCancelModal(true)}>Cancel</Button>
+        <Spacer />
+        <Button colorScheme="twitter" onClick={() => saveForm("draft")}>
+          Save as Draft
+        </Button>
+        <Button colorScheme="whatsapp" onClick={() => saveForm("active")}>
+          Publish
+        </Button>
+      </HStack>
+
+      {/* Cancel Modal */}
+      <CustomModal
+        title={"Are you sure?"}
+        isOpen={cancelModal}
+        onClose={() => setCancelModal(false)}
+        showFooter={false}
+      >
+        <Text>
+          Are you sure you want to close this screen? All of your unsaved
+          changes will be lost!
+        </Text>
+        <br />
+        <br />
+        <HStack justifyContent={"flex-end"}>
+          <Button onClick={() => setCancelModal(false)}>Cancel</Button>
+          <Button colorScheme="red" onClick={cancelEditing}>
+            Yes Close
+          </Button>
+        </HStack>
+      </CustomModal>
+
+      {/* Edit Fields Drawer */}
 
       <Drawer
         isOpen={isOpen}
@@ -443,11 +572,17 @@ const page = ({ params }) => {
               <CustomEditableInput
                 value={targetObject?.name}
                 fontSize={"sm"}
-                onSubmit={(value) =>
-                  setTargetObject((prev) => ({ ...prev, id: value }))
-                }
+                onSubmit={(value) => {
+                  if (reservedKeywords.includes(value)) {
+                    Toast({
+                      description: "name and student_id are reserved keywords",
+                    });
+                    return;
+                  }
+                  setTargetObject((prev) => ({ ...prev, name: value }));
+                }}
                 onChange={(value) =>
-                  setTargetObject((prev) => ({ ...prev, id: value }))
+                  setTargetObject((prev) => ({ ...prev, name: value }))
                 }
               />
             </HStack>
@@ -516,15 +651,19 @@ const page = ({ params }) => {
                   />
                 </HStack>
               ))}
-              <HStack mt={4} justifyContent={"flex-end"}>
-                <Button
-                  size={"sm"}
-                  colorScheme="whatsapp"
-                  onClick={handleOptionAddition}
-                >
-                  Add New
-                </Button>
-              </HStack>
+
+              {targetObject?.type == "select" ||
+              targetObject?.type == "checkbox" ? (
+                <HStack mt={4} justifyContent={"flex-end"}>
+                  <Button
+                    size={"sm"}
+                    colorScheme="whatsapp"
+                    onClick={handleOptionAddition}
+                  >
+                    Add New
+                  </Button>
+                </HStack>
+              ) : null}
             </VStack>
           </DrawerBody>
         </DrawerContent>
