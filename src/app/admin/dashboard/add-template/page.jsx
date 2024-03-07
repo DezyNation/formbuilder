@@ -15,10 +15,16 @@ import {
   NumberInputStepper,
   Stack,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { FormAxios } from "@/lib/utils/axios";
+import useErrorHandler from "@/lib/hooks/useErrorHandler";
 
 const page = () => {
+  const Toast = useToast();
+  const { handleError } = useErrorHandler();
+
   const [file, setFile] = useState(null);
   const [imgLocalUrl, setImgLocalUrl] = useState("");
   const [qrVariant, setQrVariant] = useState("black");
@@ -55,6 +61,34 @@ const page = () => {
       .then((imagePreview) => setImgLocalUrl(() => imagePreview[0]))
       .catch((error) => console.error("Error reading file:", error));
   }, [file]);
+
+  function handleSubmit() {
+    FormAxios.post(`/admin/templates`, {
+      file: file,
+      name_x_coordinate: nameCord.x,
+      name_y_coordinate: nameCord.y,
+      qr_x_coordinate: qrCord.x,
+      qr_y_coordinate: qrCord.y,
+      workshop_x_coordinate: eventCord.x,
+      workshop_y_coordinate: eventCord.y,
+      name_font_size: nameFontSize,
+      event_font_size: eventFontSize,
+      font_name: "serif",
+      qr_color: qrVariant,
+    })
+      .then((res) => {
+        Toast({
+          status: "success",
+          description: "Template added successfully!",
+        });
+      })
+      .catch((error) => {
+        handleError({
+          title: "Error while saving template",
+          error: error,
+        });
+      });
+  }
 
   return (
     <>
@@ -183,7 +217,7 @@ const page = () => {
             <HStack>
               <Box w={60}>
                 <NumberInput
-                  value={nameFontSize}
+                  value={eventFontSize}
                   onChange={(value) => setEventFontSize(value)}
                 >
                   <NumberInputField />
@@ -257,18 +291,18 @@ const page = () => {
           <br />
           <HStack justifyContent={"flex-end"}>
             <Button fontWeight={"medium"}>Preview</Button>
-            <CustomButton>Save</CustomButton>
+            <CustomButton onClick={() => handleSubmit()}>Save</CustomButton>
           </HStack>
         </Box>
         {imgLocalUrl ? (
           <Box
             w={["full", "50%"]}
             pos={"relative"}
-            h={'max-content'}
+            h={"max-content"}
             bgImage={imgLocalUrl}
             bgSize={"contain"}
             bgRepeat={"no-repeat"}
-            bgColor={'#FFF'}
+            bgColor={"#FFF"}
           >
             <Image src={imgLocalUrl} />
             <Text
@@ -290,7 +324,7 @@ const page = () => {
               Event Name
             </Text>
             <Image
-              width={12}
+              width={16}
               src={`/assets/img/sample-qr-${qrVariant}.png`}
               pos={"absolute"}
               top={`${qrCord.y}%`}

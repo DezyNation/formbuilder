@@ -21,27 +21,44 @@ import CustomTabs from "@/components/misc/CustomTabs";
 import { Form, Formik } from "formik";
 import useErrorHandler from "@/lib/hooks/useErrorHandler";
 import { API } from "@/lib/api";
+import FileDropzone from "@/components/misc/FileDropzone";
+import { API_BASE_URL } from "@/lib/utils/constants";
+import { FormAxios } from "@/lib/utils/axios";
 
 const page = () => {
   const { handleError } = useErrorHandler();
+
   const [canGetCertificate, setCanGetCertificate] = useState("yes");
+  const [templates, setTemplates] = useState([]);
 
-  async function createForm(data) {
+  async function fetchTemplates() {
     try {
-      const res = await API.createForm({
-        ...data,
-        certificate: canGetCertificate === "yes" ? 1 : 0,
-      });
-
-      if (res?.data?.id) {
-        window.location.href = `/admin/dashboard/edit-form/${res?.data?.id}`;
-      }
+      const res = await API.getTemplates();
+      setTemplates(res?.data);
     } catch (error) {
       handleError({
-        title: "Error while creating form",
+        title: "Error while fetching ceretificate templates",
         error: error,
       });
     }
+  }
+
+  function createForm(data: any) {
+    FormAxios.post(`/admin/forms`, {
+      ...data,
+      certificate: canGetCertificate === "yes" ? 1 : 0,
+    })
+      .then((res) => {
+        if (res?.data?.data?.id) {
+          window.location.href = `/admin/dashboard/edit-form/${res?.data?.data?.id}`;
+        }
+      })
+      .catch((error) => {
+        handleError({
+          title: "Error while creating form",
+          error: error,
+        });
+      });
   }
 
   return (
@@ -51,6 +68,8 @@ const page = () => {
           title: "",
           description: "",
           event_name: "",
+          template_id: "",
+          bg_image: null,
         }}
         onSubmit={console.log}
       >
@@ -86,6 +105,13 @@ const page = () => {
                 </FormControl>
                 <br />
                 <br />
+                <FormLabel>Background Image (optional)</FormLabel>
+                <FileDropzone
+                  onUpload={(file) => setFieldValue("bg_image", file)}
+                  multiple={false}
+                />
+                <br />
+                <br />
                 <FormLabel>Can responders get certificate?</FormLabel>
                 <CustomTabs
                   tabList={[
@@ -119,8 +145,19 @@ const page = () => {
                       mt={4}
                       gap={8}
                     >
-                      <Image src="/assets/img/downloads.png" w={20} />
-                      <Image src="/assets/img/downloads.png" w={20} />
+                      {templates?.map((item: any, key: number) => (
+                        <Image
+                          src={API_BASE_URL.replace("/api", "/") + item?.path}
+                          w={20}
+                          border={"2px solid"}
+                          borderColor={
+                            values?.template_id == item?.id
+                              ? "brand.primary"
+                              : "#FFF"
+                          }
+                          onClick={() => setFieldValue("template_id", item?.id)}
+                        />
+                      ))}
                     </HStack>
                   </>
                 ) : null}

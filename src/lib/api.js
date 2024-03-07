@@ -136,6 +136,11 @@ export const API = {
     return API.processResponse(res);
   },
 
+  getFormInfo: async (id) => {
+    let res = await API.execute(`/form/${id}`, "GET");
+    return API.processResponse(res);
+  },
+
   adminGetFormInfo: async (id) => {
     let res = await API.execute(`/admin/forms/${id}`, "GET");
     return API.processResponse(res);
@@ -157,17 +162,42 @@ export const API = {
   },
 
   getTemplates: async () => {
-    let res = await API.execute(`/templates`, "GET");
+    let res = await API.execute(`/admin/templates`, "GET");
     return API.processResponse(res);
   },
 
   updateTemplate: async (id, data) => {
-    let res = await API.execute(`/template/${id}`, "PUT", data);
+    let res = await API.execute(`/admin/template/${id}`, "PUT", data);
     return API.processResponse(res);
   },
 
   deleteTemplate: async (id) => {
-    let res = await API.execute(`/template/${id}`, "DELETE");
+    let res = await API.execute(`/admin/templates/${id}`, "DELETE");
+    return API.processResponse(res);
+  },
+
+  myCertificates: async (id) => {
+    let res = await API.execute(`/my-certificates/${id}`, "GET");
+    return API.processResponse(res);
+  },
+
+  submitForm: async (data) => {
+    let res = await API.execute(`/submissions`, "POST", data);
+    return API.processResponse(res);
+  },
+
+  submissionInfo: async (id) => {
+    let res = await API.execute(`/submissions/${id}`, "GET");
+    return API.processResponse(res);
+  },
+
+  updateSubmission: async (id, data) => {
+    let res = await API.execute(`/submissions/${id}`, "PUT", data);
+    return API.processResponse(res);
+  },
+
+  formSubmissions: async (formId) => {
+    let res = await API.execute(`/admin/responses/${formId}`, "GET");
     return API.processResponse(res);
   },
 

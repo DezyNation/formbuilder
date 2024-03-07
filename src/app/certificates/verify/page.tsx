@@ -1,5 +1,7 @@
 "use client";
 import CustomButton from "@/components/misc/CustomButton";
+import { API } from "@/lib/api";
+import useErrorHandler from "@/lib/hooks/useErrorHandler";
 import {
   Box,
   Container,
@@ -11,9 +13,26 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 
 const page = () => {
+  const { handleError } = useErrorHandler();
+
+  const [id, setId] = useState("");
+  const [data, setData] = useState<any>(null);
+
+  async function fetchData() {
+    try {
+      const res = await API.submissionInfo(id);
+      setData(res?.data);
+    } catch (error) {
+      handleError({
+        title: "Error occured while fetching certificate info",
+        error: error,
+      });
+    }
+  }
+
   return (
     <>
       <Box pos={"relative"}>
@@ -51,10 +70,10 @@ const page = () => {
             justifyContent={"center"}
           >
             <FormControl maxW={["full", "sm"]} variant={"floating"}>
-              <Input placeholder={" "} />
+              <Input placeholder={" "} onChange={e => setId(e.target.value)} />
               <FormLabel>Your Certificate ID</FormLabel>
             </FormControl>
-            <CustomButton>Verify</CustomButton>
+            <CustomButton onClick={() => fetchData()}>Verify</CustomButton>
           </Stack>
           <br />
           <br />

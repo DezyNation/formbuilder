@@ -2,8 +2,7 @@
 import { Box, HStack, Image, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 
-const page = ({ params }) => {
-  const { formId } = params;
+const page = () => {
 
   return (
     <>
@@ -14,12 +13,12 @@ const page = ({ params }) => {
       <br />
       <VStack w={"full"} gap={8}>
         <HStack direction={["column", "row"]} gap={8} w={"full"}>
-          <StatsCard data={5} label={"forms"} img={"forms.png"} />
-          <StatsCard data={519} label={"responses"} img={"responses.png"} />
+          <StatsCard data={0} label={"forms"} img={"forms.png"} />
+          <StatsCard data={0} label={"responses"} img={"responses.png"} />
         </HStack>
         <HStack direction={["column", "row"]} gap={8} w={"full"}>
-          <StatsCard data={88} label={"students"} img={"students.png"} />
-          <StatsCard data={368} label={"downloads"} img={"downloads.png"} />
+          <StatsCard data={0} label={"students"} img={"students.png"} />
+          <StatsCard data={0} label={"downloads"} img={"downloads.png"} />
         </HStack>
       </VStack>
     </>

@@ -2,6 +2,7 @@
 import CustomModal from "@/components/misc/CustomModal";
 import { API } from "@/lib/api";
 import useErrorHandler from "@/lib/hooks/useErrorHandler";
+import { API_BASE_URL, CLIENT_BASE_URL } from "@/lib/utils/constants";
 import {
   Badge,
   Button,
@@ -19,10 +20,12 @@ import {
   Tr,
   useDisclosure,
   useToast,
+  useClipboard,
 } from "@chakra-ui/react";
 import React, { useEffect, useRef, useState } from "react";
 import { BsEye, BsEyeFill, BsPause } from "react-icons/bs";
-import { FaEye, FaPause, FaPenAlt, FaTrash } from "react-icons/fa";
+import { FaCheck, FaEye, FaPause, FaPenAlt, FaTrash } from "react-icons/fa";
+import { FiPaperclip } from "react-icons/fi";
 import { IoMdCloudUpload } from "react-icons/io";
 import { IoPauseSharp } from "react-icons/io5";
 
@@ -31,6 +34,7 @@ const page = () => {
   const Toast = useToast();
   const { handleError } = useErrorHandler();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { onCopy, hasCopied, setValue } = useClipboard("");
 
   const [targetFormId, setTargetFormId] = useState("");
   const [data, setData] = useState([]);
@@ -96,7 +100,7 @@ const page = () => {
         <Table variant={"striped"}>
           <Thead>
             <Tr>
-              <Th>#</Th>
+              <Th>ID</Th>
               <Th>Title</Th>
               <Th>Description</Th>
               <Th>Status</Th>
@@ -108,7 +112,7 @@ const page = () => {
           <Tbody>
             {data?.map((item: any, i) => (
               <Tr>
-                <Td>{i + 1}</Td>
+                <Td>{item?.id}</Td>
                 <Td>{item?.title}</Td>
                 <Td>{item?.description}</Td>
                 <Td>
@@ -176,6 +180,21 @@ const page = () => {
                         />
                       </Tooltip>
                     )}
+                    {item?.status == "active" ? (
+                      <Tooltip label={"Copy Link"} hasArrow>
+                        <IconButton
+                          aria-label="copy link"
+                          icon={hasCopied ? <FaCheck /> : <FiPaperclip />}
+                          as={"a"}
+                          href={
+                            CLIENT_BASE_URL +
+                            "/form/" +
+                            item?.id
+                          }
+                          target="_blank"
+                        />
+                      </Tooltip>
+                    ) : null}
 
                     <Tooltip label={"Delete Form"} hasArrow>
                       <IconButton
