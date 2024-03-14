@@ -62,7 +62,7 @@ const page = () => {
             key={key}
           >
             <Image
-              src={API_BASE_URL.replace("/api", "/") + item?.path}
+              src={API_BASE_URL.replace("in/api", "in/") + item?.path}
               w={"full"}
             />
             <HStack mt={2}>

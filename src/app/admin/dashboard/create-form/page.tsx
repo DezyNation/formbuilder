@@ -147,7 +147,7 @@ const page = () => {
                     >
                       {templates?.map((item: any, key: number) => (
                         <Image
-                          src={API_BASE_URL.replace("/api", "/") + item?.path}
+                          src={API_BASE_URL.replace("in/api", "in/") + item?.path}
                           w={20}
                           border={"2px solid"}
                           borderColor={

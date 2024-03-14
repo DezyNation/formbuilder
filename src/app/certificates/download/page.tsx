@@ -122,7 +122,7 @@ const page = () => {
               >
                 <Image
                   src={
-                    API_BASE_URL.replace("/api", "/") +
+                    API_BASE_URL.replace("in/api", "in/") +
                     item?.form?.template.path
                   }
                   w={"full"}

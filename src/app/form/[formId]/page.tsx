@@ -79,7 +79,7 @@ const page = ({ params }: any) => {
           minH={"xs"}
           src={
             data?.bg_image
-              ? API_BASE_URL.replace("/api", "/") + data?.bg_image
+              ? API_BASE_URL.replace("in/api", "in/") + data?.bg_image
               : "https://www.qualtrics.com/m/assets/blog/wp-content/uploads/2020/10/create-survey-social.jpg"
           }
           objectFit={"cover"}
