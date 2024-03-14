@@ -43,16 +43,14 @@ const Login = () => {
       const res = await API.login({ email: email, password: password });
 
       if (res?.original?.access_token?.user) {
-        const role = res?.original?.access_token?.user?.roles[0]?.name;
+        // const role = res?.original?.access_token?.user?.roles[0]?.name;
         const user = JSON.stringify({
           ...res?.original?.access_token?.user,
-          roles: role,
+          // roles: role,
         });
         localStorage.setItem("user", user);
-        localStorage.setItem("role", role);
-        window.location.href = `/${
-          role == "admin" ? "admin" : "member"
-        }/dashboard`;
+        // localStorage.setItem("role", role);
+        window.location.href = `/admin/dashboard`;
         setIsLoading(false);
       }
     } catch (error) {
